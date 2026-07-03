@@ -128,8 +128,8 @@ app.get("/logs/:level", (req, res) => {
   });
 });
 
-// Manejo de rutas no encontradas
-app.use("*", (req, res) => {
+// Manejo de rutas no encontradas (middleware catch-all, compatible con Express 5)
+app.use((req, res) => {
   logger.warn("Route not found", {
     timestamp: new Date().toISOString(),
     level: "warn",

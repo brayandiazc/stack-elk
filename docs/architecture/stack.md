@@ -8,7 +8,7 @@
 | Categoría | Tecnología | Versión   | Por qué                                                     |
 | --------- | ---------- | --------- | ----------------------------------------------------------- |
 | Runtime   | Node.js    | 18-alpine | LTS ligero, ideal para una API mínima de demostración       |
-| Framework | Express    | ^4.18.2   | Servidor HTTP minimalista para exponer los endpoints del lab |
+| Framework | Express    | ^5.2.1    | Servidor HTTP minimalista para exponer los endpoints del lab |
 | Logging   | Winston    | ^3.11.0   | Logs estructurados en JSON, fáciles de parsear por Logstash  |
 | Dev       | nodemon    | ^3.0.1    | Recarga en caliente durante el desarrollo local             |
 
