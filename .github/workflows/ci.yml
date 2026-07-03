@@ -1,0 +1,40 @@
+# ==============================================================================
+# CI — Laboratorio ELK Stack
+# Valida la app Node.js y la definición de docker-compose en cada push/PR.
+# ==============================================================================
+
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  app:
+    name: App Node.js
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Verificar sintaxis
+        run: node --check app.js
+
+  compose:
+    name: Validar docker-compose
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validar configuración de docker-compose
+        run: docker compose config

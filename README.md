@@ -1,345 +1,265 @@
-# 🚀 Laboratorio ELK Stack - Centralización y Análisis de Logs
+# Laboratorio ELK Stack
 
-Este laboratorio educativo demuestra cómo implementar un stack completo ELK (Elasticsearch, Logstash, Kibana) para centralizar y analizar logs de una aplicación Node.js en tiempo real.
+Laboratorio educativo que implementa un stack completo **ELK** (Elasticsearch,
+Logstash, Kibana) para centralizar y analizar en tiempo real los logs de una
+aplicación Node.js.
 
-## 📋 Descripción
+![Build](https://img.shields.io/badge/build-passing-brightgreen)
+![Stack](https://img.shields.io/badge/ELK-7.17.0-005571)
+![License](https://img.shields.io/badge/license-MIT-blue)
 
-El proyecto incluye:
+## Tabla de Contenidos
 
-- **Aplicación Node.js** con endpoints que generan logs estructurados
-- **Elasticsearch** para almacenamiento y búsqueda de logs
-- **Logstash** para procesamiento y enriquecimiento de logs
-- **Kibana** para visualización y análisis
-- **Docker Compose** para orquestación completa
-- **Scripts de simulación** para generar tráfico de prueba
+- [Descripción](#descripción)
+- [Características](#características)
+- [Requisitos Previos](#requisitos-previos)
+- [Instalación](#instalación)
+- [Configuración](#configuración)
+- [Uso](#uso)
+- [Arquitectura](#arquitectura)
+- [Stack Tecnológico](#stack-tecnológico)
+- [Scripts Disponibles](#scripts-disponibles)
+- [Testing](#testing)
+- [Contribución](#contribución)
+- [Troubleshooting](#troubleshooting)
+- [Roadmap](#roadmap)
+- [Documentación](#documentación)
+- [Soporte](#soporte)
+- [Versionado](#versionado)
+- [Autores](#autores)
+- [Licencia](#licencia)
+- [Apóyanos](#apóyanos)
+- [Agradecimientos](#agradecimientos)
 
-## 🏗️ Arquitectura
+## Descripción
 
+Este proyecto muestra, de punta a punta, cómo se centralizan y analizan logs con
+el stack ELK. Una pequeña API en Node.js emite logs JSON estructurados; Logstash
+los lee, parsea y enriquece; Elasticsearch los indexa; y Kibana permite explorar,
+visualizar y alertar sobre ellos.
+
+Está pensado como **recurso de aprendizaje**: se levanta con un comando y trae
+scripts para verificar el estado y simular tráfico. Para el propósito y a quién
+sirve, ver [`docs/product/business-model.md`](docs/product/business-model.md).
+
+### Flujo de Funcionamiento
+
+```mermaid
+graph LR
+    A[App Node.js<br/>Express + Winston] -->|escribe| B[(logs/app.log)]
+    B -->|tail| C[Logstash]
+    C -->|indexa| D[(Elasticsearch<br/>app-logs-*)]
+    D -->|consulta| E[Kibana]
 ```
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│   Node.js   │───▶│  Logstash   │───▶│Elasticsearch│◀───│   Kibana    │
-│   App       │    │             │    │             │    │             │
-└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
-       │                   │                   │                   │
-       │                   │                   │                   │
-       ▼                   ▼                   ▼                   ▼
-  logs/app.log        Pipeline           app-logs-*          Dashboard
-```
 
-## 🚀 Inicio Rápido
+## Características
 
-### Prerrequisitos
+- ✅ API Node.js con endpoints que generan logs de distintos niveles (info/warn/error)
+- ✅ Logging estructurado en JSON con Winston
+- ✅ Pipeline de Logstash con parseo, enriquecimiento y tags
+- ✅ Elasticsearch (single-node) con índices diarios `app-logs-YYYY.MM.dd`
+- ✅ Kibana para Discover, dashboards y alertas
+- ✅ Orquestación completa con Docker Compose
+- ✅ Scripts de arranque, verificación y simulación de tráfico
 
-- Docker y Docker Compose instalados
-- Al menos 4GB de RAM disponible
-- Puertos 5000, 9200, 5601 disponibles
+## Requisitos Previos
 
-### 1. Clonar y ejecutar
+- **Docker** y **Docker Compose** (v2)
+- Al menos **4 GB de RAM** disponibles
+- Puertos **5001**, **9200** y **5601** libres
+- Terminal con acceso a comandos bash
+
+## Instalación
+
+### 1. Clonar el repositorio
 
 ```bash
-# Clonar el repositorio
-git clone <repository-url>
+git clone https://github.com/brayandiazc/stack-elk.git
 cd stack-elk
+```
 
-# Levantar todos los servicios
+### 2. Levantar el stack
+
+```bash
 docker-compose up -d
-
-# Verificar que todos los servicios estén corriendo
 docker-compose ps
 ```
 
-### 2. Verificar servicios
+### 3. (Opcional) Configurar variables de entorno
 
 ```bash
-# Aplicación Node.js
-curl http://localhost:5001/health
-
-# Elasticsearch
-curl http://localhost:9200/_cluster/health
-
-# Kibana (en el navegador)
-open http://localhost:5601
+cp .env.example .env
+# Edita .env si ejecutas la app fuera de Docker
 ```
 
-### 3. Simular tráfico
+## Configuración
+
+Las variables de entorno se documentan en [`.env.example`](.env.example). El stack
+funciona sin configuración adicional; las variables son útiles al ejecutar la app
+Node.js localmente (`npm start`) fuera de los contenedores.
+
+> Nunca subas tu archivo `.env` con valores reales. Ver [SECURITY.md](SECURITY.md)
+> y [`docs/conventions/secrets.md`](docs/conventions/secrets.md).
+
+## Uso
+
+### Verificar servicios
 
 ```bash
-# Ejecutar script de simulación
+curl http://localhost:5001/health           # App Node.js
+curl http://localhost:9200/_cluster/health  # Elasticsearch
+open http://localhost:5601                    # Kibana (navegador)
+```
+
+### Simular tráfico
+
+```bash
 ./simulate-traffic.sh
 ```
 
-## 📊 Endpoints de la Aplicación
+### Ver los logs en Kibana
 
-| Endpoint       | Descripción            | Código de Respuesta |
-| -------------- | ---------------------- | ------------------- |
-| `/`            | Página principal       | 200 OK              |
-| `/health`      | Health check           | 200 OK              |
-| `/error`       | Error simulado         | 500 Error           |
-| `/logs/:level` | Generar log específico | 200 OK              |
-| `/*`           | Ruta no encontrada     | 404 Not Found       |
+1. **Stack Management → Index Patterns** → crear `app-logs-*` con `@timestamp`.
+2. Ir a **Discover** para ver los logs en tiempo real.
 
-## 🔧 Configuración Detallada
+Contrato completo de endpoints en [`docs/architecture/api.md`](docs/architecture/api.md);
+diseño de dashboards en [`docs/architecture/design.md`](docs/architecture/design.md).
 
-### Aplicación Node.js
+## Arquitectura
 
-- **Puerto**: 5001
-- **Framework**: Express.js
-- **Logging**: Winston con formato JSON
-- **Archivo de logs**: `./logs/app.log`
+La app escribe logs JSON en un archivo compartido; Logstash lo sigue, enriquece
+los eventos y los indexa en Elasticsearch; Kibana los visualiza. Detalle completo
+en [`docs/architecture/architecture.md`](docs/architecture/architecture.md).
 
-### Elasticsearch
+| Servicio      | Puerto host | Rol                              |
+| ------------- | ----------- | -------------------------------- |
+| App Node.js   | 5001        | Genera logs (API HTTP)           |
+| Elasticsearch | 9200        | Almacena e indexa los logs       |
+| Logstash      | 5044 / 9600 | Procesa y enriquece los logs     |
+| Kibana        | 5601        | Explora y visualiza los logs     |
 
-- **Versión**: 7.17.0
-- **Puerto**: 9200
-- **Configuración**: Single-node para desarrollo
-- **Índice**: `app-logs-YYYY.MM.dd`
+## Stack Tecnológico
 
-### Logstash
+Node.js + Express + Winston para la app; Elasticsearch + Logstash + Kibana 7.17.0
+para observabilidad; Docker Compose para la orquestación. Inventario completo con
+versiones y justificación en [`docs/architecture/stack.md`](docs/architecture/stack.md).
 
-- **Versión**: 7.17.0
-- **Puerto**: 5044 (Beats), 9600 (API)
-- **Pipeline**: Procesa logs JSON y los envía a Elasticsearch
-- **Enriquecimiento**: Agrega campos de servicio y ambiente
-
-### Kibana
-
-- **Versión**: 7.17.0
-- **Puerto**: 5601
-- **Configuración**: Conectado a Elasticsearch local
-
-## 📈 Configuración de Kibana
-
-### 1. Crear Index Pattern
-
-1. Ir a **Stack Management** → **Index Patterns**
-2. Crear nuevo pattern: `app-logs-*`
-3. Seleccionar `@timestamp` como Time field
-
-### 2. Crear Dashboard
-
-1. Ir a **Dashboard** → **Create Dashboard**
-2. Agregar las siguientes visualizaciones:
-
-#### Gráfico de Torta - Logs por Nivel
-
-- **Tipo**: Pie Chart
-- **Métrica**: Count
-- **Segmento**: Terms (field: `level`)
-
-#### Histograma - Logs por Endpoint
-
-- **Tipo**: Vertical Bar
-- **Eje X**: Date Histogram (field: `@timestamp`)
-- **Eje Y**: Count
-- **Split Series**: Terms (field: `path`)
-
-#### Línea de Tiempo - Errores por Hora
-
-- **Tipo**: Line Chart
-- **Eje X**: Date Histogram (field: `@timestamp`, interval: 1h)
-- **Eje Y**: Count
-- **Filtro**: `level:error`
-
-### 3. Configurar Alertas (Opcional)
-
-1. Ir a **Stack Management** → **Rules and Alerts**
-2. Crear regla para detectar más de 5 errores en 1 hora
-3. Configurar notificación por email o webhook
-
-## 🧪 Simulación de Tráfico
-
-### Script Automático
+## Scripts Disponibles
 
 ```bash
-# Ejecutar simulación completa
+./quick-start.sh        # Arranque guiado del stack completo
+./check-services.sh     # Verifica que todos los servicios estén sanos
+./simulate-traffic.sh   # Genera tráfico de prueba contra la app
+
+# App Node.js (dentro del contenedor o en local)
+npm start               # Iniciar la app
+npm run dev             # Iniciar con recarga (nodemon)
+```
+
+## Testing
+
+Este laboratorio se verifica de forma **funcional** (smoke tests) sobre el stack en
+ejecución:
+
+```bash
+./check-services.sh
 ./simulate-traffic.sh
-
-# Simulación manual básica
-curl http://localhost:5001/
-curl http://localhost:5001/error
-curl http://localhost:5001/logs/info
 ```
 
-### Simulación Intensiva
+Estrategia y roadmap de testing en [`docs/conventions/testing.md`](docs/conventions/testing.md).
 
-```bash
-# Generar 100 requests rápidos
-for i in {1..100}; do
-  curl -s http://localhost:5001/ > /dev/null &
-  curl -s http://localhost:5001/error > /dev/null &
-done
-wait
-```
+## Contribución
 
-## 📝 Estructura de Logs
+Lee la [Guía de Contribución](CONTRIBUTING.md) para conocer el flujo de trabajo
+(Git Flow), el formato de commits (Conventional Commits) y el proceso de Pull
+Requests.
 
-Cada log contiene los siguientes campos:
-
-```json
-{
-  "timestamp": "2023-12-01T10:30:00.000Z",
-  "level": "info|error|warn",
-  "message": "Descripción del evento",
-  "path": "/endpoint",
-  "method": "GET|POST",
-  "statusCode": 200,
-  "duration": "15ms",
-  "userAgent": "curl/7.68.0",
-  "ip": "172.18.0.1",
-  "service": "elk-lab-app",
-  "environment": "development"
-}
-```
-
-## 🔍 Consultas Útiles en Kibana
-
-### Logs de Error
-
-```
-level:error
-```
-
-### Endpoints Más Visitados
-
-```
-GET app-logs-*/_search
-{
-  "aggs": {
-    "endpoints": {
-      "terms": {
-        "field": "path",
-        "size": 10
-      }
-    }
-  }
-}
-```
-
-### Logs de Última Hora
-
-```
-@timestamp:[now-1h TO now]
-```
-
-### Errores por Endpoint
-
-```
-level:error AND path:/error
-```
-
-## 🛠️ Troubleshooting
-
-### Problemas Comunes
+## Troubleshooting
 
 #### Elasticsearch no inicia
 
 ```bash
-# Verificar logs
 docker-compose logs elasticsearch
-
-# Verificar recursos del sistema
-docker stats
-
-# Reiniciar servicio
+docker stats                 # ¿Suficiente RAM?
 docker-compose restart elasticsearch
 ```
 
 #### Logstash no procesa logs
 
 ```bash
-# Verificar pipeline
 docker-compose logs logstash
-
-# Verificar archivo de logs
-tail -f logs/app.log
-
-# Reiniciar Logstash
+tail -f logs/app.log         # ¿La app está escribiendo?
 docker-compose restart logstash
 ```
 
 #### Kibana no muestra datos
 
-1. Verificar que Elasticsearch tenga datos
-2. Crear/verificar index pattern
-3. Verificar configuración de timezone
+1. Verifica que Elasticsearch tenga datos: `curl http://localhost:9200/app-logs-*/_count`.
+2. Revisa que el index pattern `app-logs-*` exista y use `@timestamp`.
+3. Ajusta el rango temporal (time picker) en Discover.
 
-### Comandos Útiles
+### Obtener ayuda
 
-```bash
-# Ver logs de todos los servicios
-docker-compose logs -f
+1. Revisa la [documentación](docs/README.md) y las [guías](docs/guides/README.md).
+2. Busca en los [issues existentes](https://github.com/brayandiazc/stack-elk/issues).
+3. Abre un nuevo issue o escribe a brayandiazc@gmail.com.
 
-# Ver logs de un servicio específico
-docker-compose logs -f app
+## Roadmap
 
-# Reiniciar todo el stack
-docker-compose down && docker-compose up -d
+Dirección y próximos pasos en [`docs/product/roadmap.md`](docs/product/roadmap.md).
 
-# Limpiar datos de Elasticsearch
-docker-compose down -v
-```
+## Documentación
 
-## 📚 Conceptos Aprendidos
+Toda la documentación vive en [`docs/`](docs/README.md):
 
-### Centralización de Logs
+| Documento                                                                | Responde a                        |
+| ------------------------------------------------------------------------ | --------------------------------- |
+| [`docs/architecture/architecture.md`](docs/architecture/architecture.md) | ¿Cómo está construido?            |
+| [`docs/architecture/stack.md`](docs/architecture/stack.md)               | ¿Con qué tecnologías?             |
+| [`docs/architecture/api.md`](docs/architecture/api.md)                   | ¿Qué endpoints expone?            |
+| [`docs/architecture/database.md`](docs/architecture/database.md)         | ¿Qué esquema tienen los logs?     |
+| [`docs/architecture/auth.md`](docs/architecture/auth.md)                 | ¿Cómo se maneja la seguridad?     |
+| [`docs/architecture/design.md`](docs/architecture/design.md)             | ¿Cómo se visualiza en Kibana?     |
+| [`docs/product/`](docs/product/roadmap.md)                               | ¿Por qué existe y hacia dónde va? |
+| [`docs/decisions/`](docs/decisions/README.md)                            | ¿Por qué cada decisión?           |
+| [`docs/conventions/`](docs/conventions/README.md)                        | ¿Cómo trabajamos en este repo?    |
+| [`docs/guides/`](docs/guides/README.md)                                  | ¿Cómo lo uso paso a paso?         |
 
-- **Problema**: Logs dispersos en múltiples servicios
-- **Solución**: Recolección centralizada con Logstash
-- **Beneficio**: Análisis unificado y búsqueda global
+## Soporte
 
-### Procesamiento de Logs
+¿Problemas o sugerencias? Abre un issue en
+[el repositorio](https://github.com/brayandiazc/stack-elk/issues) o escribe a
+brayandiazc@gmail.com.
 
-- **Parsing**: Conversión de logs a formato estructurado
-- **Enriquecimiento**: Agregar metadatos y contexto
-- **Filtrado**: Eliminar logs irrelevantes
+## Versionado
 
-### Visualización
+Usamos [Git](https://git-scm.com) y seguimos [Semantic Versioning](https://semver.org/).
+Consulta las [etiquetas](https://github.com/brayandiazc/stack-elk/tags) y el
+[CHANGELOG](CHANGELOG.md) para ver las versiones disponibles.
 
-- **Dashboards**: Vistas unificadas de métricas
-- **Alertas**: Detección automática de problemas
-- **Análisis**: Identificación de patrones y tendencias
+## Autores
 
-## 🎯 Ejercicios Prácticos
+- **Brayan Díaz C** — _Trabajo inicial_ — [@brayandiazc](https://github.com/brayandiazc)
 
-### Nivel Básico
+## Licencia
 
-1. Crear dashboard con logs por nivel
-2. Configurar alerta para errores
-3. Analizar endpoints más visitados
+Este proyecto está bajo la licencia [MIT](LICENSE).
 
-### Nivel Intermedio
+## Apóyanos
 
-1. Crear visualización de latencia por endpoint
-2. Configurar filtros por IP de origen
-3. Implementar alertas por umbral de errores
+Si este proyecto te resulta útil y quieres apoyar su desarrollo:
 
-### Nivel Avanzado
+- [GitHub Sponsors](https://github.com/sponsors/brayandiazc)
 
-1. Crear pipeline de Logstash personalizado
-2. Implementar índices con diferentes retenciones
-3. Configurar autenticación y autorización
+## Agradecimientos
 
-## 📖 Recursos Adicionales
+Gracias a la comunidad de Elastic y a quienes usan este laboratorio para aprender.
+Si encuentras valor en él, puedes:
 
-- [Documentación oficial de Elasticsearch](https://www.elastic.co/guide/index.html)
-- [Guía de Logstash](https://www.elastic.co/guide/en/logstash/current/index.html)
-- [Tutorial de Kibana](https://www.elastic.co/guide/en/kibana/current/index.html)
-- [Best Practices para ELK Stack](https://www.elastic.co/blog/elk-stack-best-practices)
-
-## 🤝 Contribuciones
-
-¡Las contribuciones son bienvenidas! Por favor:
-
-1. Fork el proyecto
-2. Crear una rama para tu feature
-3. Commit tus cambios
-4. Push a la rama
-5. Abrir un Pull Request
-
-## 📄 Licencia
-
-Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
+- Compartir el proyecto 📤
+- Dejar una estrella ⭐
+- Abrir un issue o PR 🙌
 
 ---
 
-**¡Disfruta explorando el poder del stack ELK! 🚀**
+⌨️ con ❤️ por [@brayandiazc](https://github.com/brayandiazc)

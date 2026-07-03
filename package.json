@@ -21,6 +21,14 @@
     "logstash",
     "kibana"
   ],
-  "author": "ELK Lab",
-  "license": "MIT"
+  "author": "Brayan Díaz C",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/brayandiazc/stack-elk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/brayandiazc/stack-elk/issues"
+  },
+  "homepage": "https://github.com/brayandiazc/stack-elk#readme"
 }
