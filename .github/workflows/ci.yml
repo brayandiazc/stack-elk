@@ -16,7 +16,7 @@ jobs:
     name: App Node.js
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Configurar Node.js
         uses: actions/setup-node@v4
@@ -34,7 +34,7 @@ jobs:
     name: Validar docker-compose
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Validar configuración de docker-compose
         run: docker compose config
