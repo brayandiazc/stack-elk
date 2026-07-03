@@ -11,6 +11,14 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ### Changed
 
+- Actualiza Express de 4.x a **5.2.1** (vía Dependabot #4). Se ajusta el handler
+  404 de `app.use("*", ...)` a un middleware catch-all sin ruta, compatible con
+  Express 5 (path-to-regexp v8).
+- Actualiza la imagen base de Docker a **node:22-alpine** (LTS); Node 18 quedó EOL.
+  Se descartó el salto a node:26-alpine (Current) que proponía Dependabot #3.
+- Actualiza `winston` a 3.19.0 (#5), `nodemon` a 3.1.14 (#6),
+  `actions/checkout` a v7 (#1) y `actions/setup-node` a v6 (#2).
+
 ### Deprecated
 
 ### Removed
